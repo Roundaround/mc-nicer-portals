@@ -1,13 +1,26 @@
-import me.roundaround.gradle.extension.library.LibModule
-
 plugins {
-  id("roundalib-gradle") version "2.0.0"
+  id("me.roundaround.allay")
 }
 
-roundalib {
-  library {
-    local = true
-    version = "4.0.0"
-    modules.addAll(LibModule.CORE, LibModule.GUI, LibModule.CONFIG, LibModule.CONFIG_GUI, LibModule.OBSERVABLES)
+allay {
+  displayName.set("Nicer Portals")
+  description.set("Various small improvements to portals.")
+  authors.set(listOf("Roundaround"))
+  license.set("MIT")
+  homepage.set("https://modrinth.com/mod/nicer-portals")
+  repository.set("https://github.com/Roundaround/mc-fabric-nicer-portals")
+  issues.set("https://github.com/Roundaround/mc-fabric-nicer-portals/issues")
+
+  modrinth {
+    projectId.set("nicer-portals")
+  }
+
+  curseforge {
+    projectId.set(1501935)
+  }
+
+  release {
+    versionType.set("release")
+    sourcesJar.set(true)
   }
 }
