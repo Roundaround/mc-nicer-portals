@@ -8,8 +8,8 @@ allay {
   authors.set(listOf("Roundaround"))
   license.set("MIT")
   homepage.set("https://modrinth.com/mod/nicer-portals")
-  repository.set("https://github.com/Roundaround/mc-fabric-nicer-portals")
-  issues.set("https://github.com/Roundaround/mc-fabric-nicer-portals/issues")
+  repository.set("https://github.com/Roundaround/mc-nicer-portals")
+  issues.set("https://github.com/Roundaround/mc-nicer-portals/issues")
   logoFile.set("assets/nicerportals/banner.png")
 
   modrinth {
