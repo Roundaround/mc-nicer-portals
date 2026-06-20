@@ -12,6 +12,12 @@ allay {
   issues.set("https://github.com/Roundaround/mc-nicer-portals/issues")
   logoFile.set("assets/nicerportals/banner.png")
 
+  gametest {
+    // Acknowledge the Minecraft EULA for the throwaway worlds the headless
+    // server game test spins up.
+    eula.set(true)
+  }
+
   modrinth {
     projectId.set("nicer-portals")
   }
