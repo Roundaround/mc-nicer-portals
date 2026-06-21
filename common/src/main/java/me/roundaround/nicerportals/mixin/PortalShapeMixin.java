@@ -43,8 +43,11 @@ public abstract class PortalShapeMixin implements NetherPortalExtensions {
   @Shadow
   private BlockPos bottomLeft;
 
+  // Tag-ifies the vanilla rectangle path's frame check (only reached when anyShape is off). The
+  // FRAME predicate's synthetic lambda isn't attachable on every loader, so this is best-effort
+  // (require = 0); the anyShape flood fill below tag-checks frames directly on all loaders.
   @Inject(
-      method = "lambda$static$0", at = @At(value = "HEAD"), cancellable = true
+      method = "lambda$static$0", at = @At(value = "HEAD"), cancellable = true, require = 0
   )
   private static void isValidFrameBlock(
       BlockState state,
@@ -183,7 +186,15 @@ public abstract class PortalShapeMixin implements NetherPortalExtensions {
 
   @Unique
   private boolean isValidFrameBlock(BlockGetter world, BlockPos pos) {
-    return PortalShapeAccessor.getIsValidFrameBlock().test(world.getBlockState(pos), world, pos) &&
-           !world.isOutsideBuildHeight(pos);
+    if (world.isOutsideBuildHeight(pos)) {
+      return false;
+    }
+    BlockState state = world.getBlockState(pos);
+    // Tag-check directly rather than through the FRAME predicate: that predicate is only tag-aware
+    // where the lambda$static$0 inject lands, which isn't every loader.
+    if (NicerPortalsPerWorldConfig.getInstance().portalFrameTag.getValue()) {
+      return state.is(BlockTags.PORTAL_FRAME);
+    }
+    return PortalShapeAccessor.getIsValidFrameBlock().test(state, world, pos);
   }
 }
