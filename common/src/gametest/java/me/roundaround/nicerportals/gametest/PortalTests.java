@@ -7,6 +7,7 @@ import me.roundaround.trove.gametest.ClientWorld;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -77,7 +78,7 @@ final class PortalTests {
       Vec3 hit = new Vec3(frameBelow.getX() + 0.5, frameBelow.getY() + 1.0, frameBelow.getZ() + 0.5);
       BlockHitResult result = new BlockHitResult(hit, Direction.UP, frameBelow, false);
       mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, result);
-      mc.player.swing(InteractionHand.MAIN_HAND);
+      mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
     });
     world.settle();
     context.waitFor(

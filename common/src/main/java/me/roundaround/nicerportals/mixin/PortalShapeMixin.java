@@ -1,5 +1,8 @@
 package me.roundaround.nicerportals.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import java.util.function.Predicate;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import me.roundaround.nicerportals.config.NicerPortalsPerWorldConfig;
@@ -60,23 +63,24 @@ public abstract class PortalShapeMixin implements NetherPortalExtensions {
     return world instanceof LevelReader reader && reader.isClientSide();
   }
 
-  // Tag-ifies the vanilla rectangle path's frame check (only reached when anyShape is off). The
-  // FRAME predicate's synthetic lambda isn't attachable on every loader, so this is best-effort
-  // (require = 0); the anyShape flood fill below tag-checks frames directly on all loaders.
-  @Inject(
-      method = "lambda$static$0", at = @At(value = "HEAD"), cancellable = true, require = 0
+  // Tag-ifies the vanilla rectangle path's frame check (only reached when anyShape is off). 26.3's
+  // FRAME is a plain Predicate<BlockState>, so the side check happens where it is invoked — the
+  // static scanners all carry the BlockGetter — instead of inside the (world-less) lambda.
+  @WrapOperation(
+      method = {"getDistanceUntilEdgeAboveFrame", "hasTopFrame", "getDistanceUntilTop"},
+      at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z")
   )
-  private static void isValidFrameBlock(
-      BlockState state,
-      BlockGetter world,
-      BlockPos pos,
-      CallbackInfoReturnable<Boolean> info
+  private static boolean isValidFrameBlock(
+      Predicate<BlockState> frame,
+      Object state,
+      Operation<Boolean> original,
+      @Local(argsOnly = true) BlockGetter world
   ) {
     if (nicerportals$isLogicalClient(world) ||
         !NicerPortalsPerWorldConfig.getInstance().portalFrameTag.getValue()) {
-      return;
+      return original.call(frame, state);
     }
-    info.setReturnValue(state.is(BlockTags.PORTAL_FRAME));
+    return ((BlockState) state).is(BlockTags.PORTAL_FRAME);
   }
 
   @ModifyReturnValue(
@@ -217,6 +221,6 @@ public abstract class PortalShapeMixin implements NetherPortalExtensions {
     if (NicerPortalsPerWorldConfig.getInstance().portalFrameTag.getValue()) {
       return state.is(BlockTags.PORTAL_FRAME);
     }
-    return PortalShapeAccessor.getIsValidFrameBlock().test(state, world, pos);
+    return PortalShape.FRAME.test(state);
   }
 }
