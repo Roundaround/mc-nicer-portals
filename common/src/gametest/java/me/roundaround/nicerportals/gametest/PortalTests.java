@@ -29,6 +29,8 @@ final class PortalTests {
   static final int Z = 2;
   /** Lower-left interior cell: where the fire goes and the first portal block appears. */
   static final BlockPos INTERIOR_BOTTOM = new BlockPos(1, 65, Z);
+  /** Middle-left interior cell: air below it, so fire lit here cannot survive on its own. */
+  static final BlockPos INTERIOR_MID = new BlockPos(1, 66, Z);
 
   private PortalTests() {
   }
@@ -83,6 +85,31 @@ final class PortalTests {
     world.settle();
     context.waitFor(
         (mc) -> mc.level != null && mc.level.getBlockState(interiorBottom).is(Blocks.NETHER_PORTAL),
+        60
+    );
+  }
+
+  /**
+   * Light the frame off an inner side face instead of a floor block, so the fire lands with
+   * nothing beneath it. Fire can't survive there on its own, and that is the only path where
+   * {@code canBePlacedAt} falls through to {@code BaseFireBlock#isPortal} — the adjacent-frame
+   * check {@code BaseFireBlockMixin} tag-ifies. Lighting off a floor block short-circuits on
+   * {@code canSurvive} and never consults it. Blocks until {@code interiorCell} turns to portal.
+   */
+  static void igniteFromSideWithFlintAndSteel(ClientTestContext context, ClientWorld world, BlockPos interiorCell) {
+    BlockPos frameSide = interiorCell.west();
+    world.setMainHandItem("minecraft:flint_and_steel");
+    context.waitTicks(2);
+    world.lookAt(frameSide);
+    context.runOnClient((mc) -> {
+      Vec3 hit = new Vec3(frameSide.getX() + 1.0, frameSide.getY() + 0.5, frameSide.getZ() + 0.5);
+      BlockHitResult result = new BlockHitResult(hit, Direction.EAST, frameSide, false);
+      mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, result);
+      mc.player.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false);
+    });
+    world.settle();
+    context.waitFor(
+        (mc) -> mc.level != null && mc.level.getBlockState(interiorCell).is(Blocks.NETHER_PORTAL),
         60
     );
   }
