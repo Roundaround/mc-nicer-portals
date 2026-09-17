@@ -24,12 +24,15 @@ public abstract class LevelEventHandlerMixin {
   @Final
   private ClientLevel level;
 
+  // Bare name, no descriptor: NeoForge/Forge binpatch this call to the
+  // getSoundType(LevelReader, BlockPos, Entity) overload. A descriptor here matches
+  // nothing there, the slice silently widens to the whole method, and the wrap lands on
+  // every playLocalSound in levelEvent instead of the block-break one. allow = 1 turns
+  // that back into a hard failure.
   @WrapWithCondition(
       method = "levelEvent", slice = @Slice(
       from = @At(
-          value = "INVOKE",
-          target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType()" +
-                   "Lnet/minecraft/world/level/block/SoundType;"
+          value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getSoundType"
       ), to = @At(
       value = "INVOKE",
       target = "Lnet/minecraft/client/multiplayer/ClientLevel;addDestroyBlockEffect(Lnet/minecraft/core/BlockPos;" +
@@ -40,7 +43,7 @@ public abstract class LevelEventHandlerMixin {
       value = "INVOKE",
       target = "Lnet/minecraft/client/multiplayer/ClientLevel;playLocalSound(Lnet/minecraft/core/BlockPos;" +
                "Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;FFZ)V"
-  )
+  ), allow = 1
   )
   private boolean onlyPlayFirstSound(
       ClientLevel instance,
